@@ -2,9 +2,8 @@
 
 ## 1. Executive Summary
 This document outlines the architecture for building a 100% local, ultra-low-latency, and deterministic
-tool-calling framework. Instead of relying on generative Large Language Models (LLMs) which are slow,
-resource-heavy, and prone to hallucination or incorrect tool selection, this framework utilizes a
-**Joint Intent Classification and Slot Filling** approach.
+tool-calling framework. Instead of relying on generative Large Language Models (LLMs) this framework 
+utilizes a **Joint Intent Classification and Slot Filling** approach.
 
 By fine-tuning a micro-encoder model (e.g., `BERT-Tiny` or `MiniLM`), the system achieves sub-10ms
 response times and strictly adheres to predefined tool schemas.
@@ -25,8 +24,8 @@ two independent, parallel classification heads.
 ### 2.1 The Components
 *   **The Encoder Brain:** Converts the raw input string into dense mathematical vectors (embeddings)
 capturing the semantic meaning of the sentence.
-*   **Head 1 (Intent Classifier):** A linear layer operating on the sentence-level embedding (e.g., the
-`[CLS]` token). It outputs a probability distribution (Softmax) over all registered tools.
+*   **Head 1 (Intent Classifier):** A linear layer operating on the sentence-level embedding. It 
+outputs a probability distribution (Softmax) over all registered tools.
 *   **Head 2 (Slot Tagger):** A linear layer operating on the token-level embeddings. It performs
 BIO (Begin/Inside/Outside) sequence tagging to map individual words to specific parameter types.
 
