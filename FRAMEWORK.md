@@ -48,7 +48,7 @@ execution.
 ### Recommended Crates
 | Component | Crate | Purpose |
 | :--- | :--- | :--- |
-| **Inference Engine** | `candle` | Runs the model graph, 100% pure Rust/WASM-compatible |
+| **Model Graph / Training** | `candle` | Runs and trains the model graph (via `candle`'s own autodiff), 100% pure Rust/WASM-compatible |
 | **Tokenization** | `tokenizers` | Converts strings to model tokens. Crucially provides
 **offset mappings** to precisely map extracted slots back to exact character indices in the original string. |
 | **Matrix Math** | `ndarray` | Handles raw logit manipulation, `argmax` resolution, and Softmax score calculations. |
@@ -66,8 +66,17 @@ deactivated tool.
 The model can be fine-tuned entirely locally.
 
 ### Framework
-**Burn (`tracel-ai/burn`)** is a Rust-native deep learning framework. It provides a unified codebase for
-both training (`burn-autodiff`) and production inference, allowing seamless continuous local retraining.
+**`candle`** is used for both training and inference, rather than splitting the two across separate
+frameworks. `candle` includes its own autodiff/backprop support, and its examples already demonstrate
+fine-tuning a BERT-style encoder for sequence classification — architecturally identical to Head 1
+(Intent Classifier). Head 2 (Slot Tagger) is the same shape applied per-token instead of per-sentence.
+
+Keeping training and inference on a single framework avoids maintaining two separate model
+definitions and converting trained weights from one tensor/checkpoint format to another. It also
+keeps the dependency tree smaller and more predictable than pulling in a second, heavier framework
+(e.g. `burn`, which brings its own module/checkpoint system, metrics, and pluggable backends) purely
+for training. `candle` is maintained by Hugging Face, which was also a factor in this choice — it has
+real production usage and is unlikely to be an unreliable or abandoned dependency.
 
 ### Training Hardware Requirements
 Because the model architectures are exceptionally small, **no GPU is required**.
@@ -81,4 +90,23 @@ Because the model architectures are exceptionally small, **no GPU is required**.
 This provides an exponential speedup in Transformer calculations.
 2.  **Small Batch Sizes:** Use batch sizes of 8 to 16 to ensure the entire matrix operations fit comfortably
 within the CPU's fast L2/L3 cache.
+
+---
+
+## 5. Implementation Sequencing
+
+Building on Phase 0 (the existing regex-based `parser.rs`), the next phase proceeds as follows:
+
+1.  **Model architecture spike:** Stand up the dual-head encoder in `candle` against a handful of
+    hand-written examples, to validate the architecture (pretrained encoder + intent head + slot head)
+    before investing in a full dataset.
+2.  **Base encoder:** Start with `BERT-Tiny` for speed. If slot-filling/intent accuracy is poor once
+    real examples are in play, swap to `all-MiniLM-L6-v2` — both are HF-hosted safetensors checkpoints
+    `candle` can load, so switching is a config change, not a rewrite.
+3.  **Data pipeline:** Once the architecture is validated, build the BIO-tagged training example
+    generator for the 3 demo tools (`set_alarm`, `check_weather`, `calculate`).
+4.  **Integration:** Swap the ML pipeline in for `parser.rs` behind the existing `ToolCall` interface,
+    so the CLI (`cli.rs`) doesn't need to change.
+
+Implementation does not begin until explicitly approved.
 
