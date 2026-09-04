@@ -16,8 +16,8 @@ use candle_nn::VarBuilder;
 use candle_transformers::models::bert::Config as BertConfig;
 use tokenizers::Tokenizer;
 
-use lowpass::model::IntentSlotModel;
-use lowpass::tokenizer::build_bert_tokenizer;
+use lowpass_lib::model::IntentSlotModel;
+use lowpass_lib::tokenizer::build_bert_tokenizer;
 
 /// `google/bert_uncased_L-2_H-128_A-2` (BERT-Tiny), pre-downloaded into this
 /// directory — see README for the fetch command. Fetching lives outside this

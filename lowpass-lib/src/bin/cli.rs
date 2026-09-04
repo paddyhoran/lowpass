@@ -1,4 +1,4 @@
-use lowpass::parser::Parser;
+use lowpass_lib::parser::Parser;
 use std::env;
 
 fn main() {
