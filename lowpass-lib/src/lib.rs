@@ -1,9 +1,11 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+pub mod bio;
 pub mod model;
 pub mod parser;
 pub mod tokenizer;
+pub mod training_data;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Tool {
