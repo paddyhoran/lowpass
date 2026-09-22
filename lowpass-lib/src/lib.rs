@@ -2,10 +2,12 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 pub mod bio;
+pub mod encode;
 pub mod model;
 pub mod parser;
 pub mod tokenizer;
 pub mod training_data;
+pub mod vocab;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Tool {

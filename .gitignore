@@ -1,3 +1,4 @@
 /target
 /.idea
 /models/
+/data/training_data.jsonl
