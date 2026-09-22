@@ -1,90 +1,25 @@
 # Low Pass
 
-A local tool calling framework built in Rust, designed to parse natural language commands and convert them into structured tool calls.
+A local tool calling framework built in Rust, designed to parse natural language commands and convert 
+them into structured tool calls.
 
-## Phase 0: Foundation (Current)
+## The Concept / Design
 
-This is a minimal working system with hardcoded pattern matching for demonstration purposes.
+### High Level
 
-### Features
+The system operates via a single forward pass through a lightweight Transformer encoder, topped with
+two independent, parallel classification heads. 
 
-- **3 Demo Tools:**
-  - `set_alarm` - Set an alarm for a specific time
-  - `check_weather` - Check weather for a location
-  - `calculate` - Perform mathematical calculations
-
-- **Pattern-based parsing** using regex
-- **JSON output** for structured tool calls
-- **CLI interface** for easy testing
-
-### Installation
-
-```bash
-cargo build --release
+```text
+                          ┌─> [Head 1: Intent] ──> Predicts Tool (e.g., `set_alarm`)
+[ User Input String ] ────┤
+                          └─> [Head 2: Slots]  ──> Predicts Params (e.g., "7:00 AM" = time)
 ```
 
-### Usage
+The results of these two predictions are then used to craft a tool call.
 
-```bash
-# Set an alarm
-cargo run --bin tcf -- "set alarm for 7am"
+### Local First
 
-# Check weather
-cargo run --bin tcf -- "check weather in Seattle"
+`lowpass` is designed to run locally, both training and inference, so it can be embedded in other 
+applications.
 
-# Calculate
-cargo run --bin tcf -- "calculate 5 + 3"
-```
-
-### Example Output
-
-```bash
-$ cargo run --bin tcf -- "set alarm for 7am"
-{
-  "tool": "set_alarm",
-  "params": {
-    "time": "7am"
-  }
-}
-```
-
-### Testing
-
-```bash
-# Run all tests
-cargo test
-
-# Run with output
-cargo test -- --nocapture
-```
-
-### Architecture
-
-```
-src/
-├── lib.rs          # Core data structures (Tool, ToolCall, Parameter)
-├── parser.rs       # Pattern-based parser with regex matching
-└── bin/
-    └── cli.rs      # Command-line interface
-```
-
-### Next Steps (Phase 1)
-
-- Replace hardcoded patterns with ML-based inference using `candle`
-- Load pre-trained BERT-Tiny model from HuggingFace
-- Implement tokenization pipeline
-- Add intent classification head
-
-## Development
-
-### Project Structure
-
-- **Library crate:** Core functionality in `src/lib.rs` and modules
-- **Binary crate:** CLI tool in `src/bin/cli.rs`
-- **Tests:** Unit tests in each module
-
-### Dependencies
-
-- `serde` - Serialization/deserialization
-- `serde_json` - JSON support
-- `regex` - Pattern matching (Phase 0 only)

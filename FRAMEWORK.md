@@ -92,21 +92,3 @@ This provides an exponential speedup in Transformer calculations.
 within the CPU's fast L2/L3 cache.
 
 ---
-
-## 5. Implementation Sequencing
-
-Building on Phase 0 (the existing regex-based `parser.rs`), the next phase proceeds as follows:
-
-1.  **Model architecture spike:** Stand up the dual-head encoder in `candle` against a handful of
-    hand-written examples, to validate the architecture (pretrained encoder + intent head + slot head)
-    before investing in a full dataset.
-2.  **Base encoder:** Start with `BERT-Tiny` for speed. If slot-filling/intent accuracy is poor once
-    real examples are in play, swap to `all-MiniLM-L6-v2` — both are HF-hosted safetensors checkpoints
-    `candle` can load, so switching is a config change, not a rewrite.
-3.  **Data pipeline:** Once the architecture is validated, build the BIO-tagged training example
-    generator for the 3 demo tools (`set_alarm`, `check_weather`, `calculate`).
-4.  **Integration:** Swap the ML pipeline in for `parser.rs` behind the existing `ToolCall` interface,
-    so the CLI (`cli.rs`) doesn't need to change.
-
-Implementation does not begin until explicitly approved.
-
