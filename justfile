@@ -1,12 +1,14 @@
-tools_dir := "data/tools"
-data_path := "data/training_data.jsonl"
-model_dir := "models/bert-tiny"
-checkpoint_dir := "models/trained"
+base_model_dir := "models/bert-tiny"
 
-# Generate BIO-tagged training data from data/tools templates
-generate:
-    cargo run --bin generator -- {{tools_dir}} {{data_path}}
+# Download the base checkpoint (if needed) and scaffold models/<name>/ with an example tool
+start name:
+    cargo run --bin download_model -- {{base_model_dir}}
+    cargo run --bin init_model -- {{name}}
 
-# Train the intent + slot heads on the generated training data
-train:
-    cargo run --bin train -- {{data_path}} {{model_dir}} {{checkpoint_dir}}
+# Generate BIO-tagged training data from models/<name>/data/tools templates
+generate name:
+    cargo run --bin generator -- models/{{name}}/data/tools models/{{name}}/data/training_data.jsonl
+
+# Train the intent + slot heads for <name> on its generated training data
+train name:
+    cargo run --bin train -- models/{{name}}/data/training_data.jsonl {{base_model_dir}} models/{{name}}/artifacts

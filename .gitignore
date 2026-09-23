@@ -1,4 +1,14 @@
 /target
 /.idea
-/models/
-/data/training_data.jsonl
+
+# Shared pretrained base checkpoint (downloaded, not source; see README).
+/models/bert-tiny/
+
+# Per-model directories under models/<name>/: only data/tools/** is
+# hand-authored source. Everything else (generated training data, trained
+# artifacts, packaged crates) is regenerated via
+# `just generate/train/package <name>`.
+/models/*/*
+!/models/*/data
+/models/*/data/*
+!/models/*/data/tools

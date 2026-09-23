@@ -4,25 +4,9 @@ use std::collections::HashMap;
 pub mod bio;
 pub mod encode;
 pub mod model;
-pub mod parser;
 pub mod tokenizer;
 pub mod training_data;
 pub mod vocab;
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Tool {
-    pub name: String,
-    pub description: String,
-    pub parameters: Vec<Parameter>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Parameter {
-    pub name: String,
-    pub param_type: String,
-    pub required: bool,
-    pub description: String,
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ToolCall {

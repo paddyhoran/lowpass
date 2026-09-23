@@ -1,3 +1,3 @@
 [workspace]
 resolver = "2"
-members = ["lowpass-lib", "generator"]
+members = ["lowpass-lib", "generator", "resources"]
