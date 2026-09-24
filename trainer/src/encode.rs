@@ -1,9 +1,10 @@
 use anyhow::{Context, Result};
 use tokenizers::Tokenizer;
 
+use lowpass_lib::vocab::Vocab;
+
 use crate::bio::spans_to_bio_tags;
 use crate::training_data::TrainingExample;
-use crate::vocab::Vocab;
 
 /// One training example, tokenized and mapped to integer label ids — the
 /// last step before batching into tensors.

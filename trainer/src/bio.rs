@@ -46,7 +46,7 @@ pub fn spans_to_bio_tags(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::tokenizer::build_bert_tokenizer;
+    use lowpass_lib::tokenizer::build_bert_tokenizer;
     use std::path::Path;
 
     fn test_tokenizer() -> tokenizers::Tokenizer {

@@ -1,11 +1,9 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-pub mod bio;
-pub mod encode;
+pub mod infer;
 pub mod model;
 pub mod tokenizer;
-pub mod training_data;
 pub mod vocab;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -18,11 +18,11 @@ use candle_nn::{AdamW, Optimizer, ParamsAdamW, VarBuilder, VarMap};
 use candle_transformers::models::bert::Config as BertConfig;
 use rand::seq::SliceRandom;
 
-use lowpass_lib::encode::{encode_example, EncodedExample};
 use lowpass_lib::model::IntentSlotModel;
 use lowpass_lib::tokenizer::build_bert_tokenizer;
-use lowpass_lib::training_data::read_jsonl;
-use lowpass_lib::vocab::{intent_vocab, slot_tag_vocab};
+use trainer::encode::{encode_example, EncodedExample};
+use trainer::training_data::read_jsonl;
+use trainer::vocab::{intent_vocab, slot_tag_vocab};
 
 const BATCH_SIZE: usize = 16;
 const EPOCHS: usize = 40;

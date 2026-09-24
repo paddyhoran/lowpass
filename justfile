@@ -12,3 +12,7 @@ generate name:
 # Train the intent + slot heads for <name> on its generated training data
 train name:
     cargo run --bin train -- models/{{name}}/data/training_data.jsonl {{base_model_dir}} models/{{name}}/artifacts
+
+# Package a trained model into a standalone crate at models/<name>/<name>/
+create name:
+    cargo run --bin create_model -- {{name}}

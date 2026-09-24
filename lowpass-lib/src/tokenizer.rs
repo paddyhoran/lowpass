@@ -7,7 +7,7 @@
 //!  - template format
 use std::path::Path;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use tokenizers::models::wordpiece::WordPiece;
 use tokenizers::normalizers::bert::BertNormalizer;
 use tokenizers::pre_tokenizers::bert::BertPreTokenizer;
@@ -19,14 +19,21 @@ use tokenizers::Tokenizer;
 /// tokenizer (lowercase + accent-stripping normalizer, whitespace/punctuation
 /// pre-tokenizer, `[CLS] $A [SEP]` template) directly from that vocab file.
 pub fn build_bert_tokenizer(vocab_path: &Path) -> Result<Tokenizer> {
-    let wordpiece = WordPiece::from_file(
-        vocab_path
-            .to_str()
-            .expect("vocab path must be valid UTF-8"),
-    )
-    .unk_token("[UNK]".to_string())
-    .build()
-    .map_err(anyhow::Error::msg)?;
+    let vocab_txt = std::fs::read(vocab_path)
+        .with_context(|| format!("reading {}", vocab_path.display()))?;
+    build_bert_tokenizer_from_bytes(&vocab_txt)
+}
+
+/// Same as [`build_bert_tokenizer`], but reads `vocab.txt`'s contents from
+/// memory instead of a file path — for callers embedding it via
+/// `include_bytes!` with no filesystem access at runtime.
+pub fn build_bert_tokenizer_from_bytes(vocab_txt: &[u8]) -> Result<Tokenizer> {
+    let vocab = WordPiece::read_bytes(vocab_txt).map_err(anyhow::Error::msg)?;
+    let wordpiece = WordPiece::builder()
+        .vocab(vocab)
+        .unk_token("[UNK]".to_string())
+        .build()
+        .map_err(anyhow::Error::msg)?;
 
     let mut tokenizer = Tokenizer::new(wordpiece);
     tokenizer
