@@ -1,6 +1,6 @@
 //! Implements our tokenizer implementation.
 //!
-//! BERT-Tiny has no `tokenizer.json` file that is can be loaded from so 
+//! BERT-Tiny has no `tokenizer.json` file that is can be loaded from so
 //! we need to manually add the following:
 //!  - normalizer
 //!  - pre-tokenizer
@@ -19,8 +19,8 @@ use tokenizers::Tokenizer;
 /// tokenizer (lowercase + accent-stripping normalizer, whitespace/punctuation
 /// pre-tokenizer, `[CLS] $A [SEP]` template) directly from that vocab file.
 pub fn build_bert_tokenizer(vocab_path: &Path) -> Result<Tokenizer> {
-    let vocab_txt = std::fs::read(vocab_path)
-        .with_context(|| format!("reading {}", vocab_path.display()))?;
+    let vocab_txt =
+        std::fs::read(vocab_path).with_context(|| format!("reading {}", vocab_path.display()))?;
     build_bert_tokenizer_from_bytes(&vocab_txt)
 }
 

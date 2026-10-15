@@ -98,7 +98,10 @@ fn main() -> Result<()> {
         .map(PathBuf::from)
         .unwrap_or_else(|| PathBuf::from(DEFAULT_MODEL_DIR));
 
-    println!("Loading BERT-Tiny checkpoint from {}...", model_dir.display());
+    println!(
+        "Loading BERT-Tiny checkpoint from {}...",
+        model_dir.display()
+    );
     let (config_path, weights_path, vocab_path) = model_files(&model_dir)?;
 
     let config_json = std::fs::read_to_string(&config_path).context("reading config.json")?;

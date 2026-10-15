@@ -1,5 +1,26 @@
 base_model_dir := "models/bert-tiny"
 
+dev: clear fmt clippy test
+
+clear:
+    clear
+
+# Check formatting (development context)
+fmt:
+    @echo "==> Formatting..."
+    @cargo fmt --all
+    @cargo fix --all-targets --allow-dirty
+
+# Lint with Clippy
+clippy:
+    @echo "==> Linting with Clippy..."
+    @cargo clippy --all-targets -- -D warnings
+
+# Runs all tests
+test:
+    @echo "==> Running tests (debug)..."
+    @cargo test -- --nocapture
+
 # Download the base checkpoint (if needed) and scaffold models/<name>/ with an example tool
 start name:
     cargo run --bin download_model -- {{base_model_dir}}

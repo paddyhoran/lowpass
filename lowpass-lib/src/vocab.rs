@@ -12,7 +12,10 @@ impl Vocab {
     }
 
     pub fn id(&self, label: &str) -> Option<u32> {
-        self.labels.iter().position(|l| l == label).map(|i| i as u32)
+        self.labels
+            .iter()
+            .position(|l| l == label)
+            .map(|i| i as u32)
     }
 
     pub fn label(&self, id: u32) -> &str {

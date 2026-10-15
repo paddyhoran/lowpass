@@ -47,7 +47,8 @@ fn main() -> Result<()> {
 
     let assets_dir = crate_dir.join("assets");
     let src_dir = crate_dir.join("src");
-    fs::create_dir_all(&assets_dir).with_context(|| format!("creating {}", assets_dir.display()))?;
+    fs::create_dir_all(&assets_dir)
+        .with_context(|| format!("creating {}", assets_dir.display()))?;
     fs::create_dir_all(&src_dir).with_context(|| format!("creating {}", src_dir.display()))?;
 
     for (src, filename) in [

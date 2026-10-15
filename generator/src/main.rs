@@ -1,4 +1,4 @@
-//! Training data generator.
+//! A very simple training data generator.
 //!
 //! Reads a directory of per-tool subdirectories, each containing:
 //!   - `templates.json`: a list of sentence templates, e.g. `"set alarm for {TIME}"`

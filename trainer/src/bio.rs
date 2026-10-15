@@ -50,7 +50,8 @@ mod tests {
     use std::path::Path;
 
     fn test_tokenizer() -> tokenizers::Tokenizer {
-        let vocab_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("../models/bert-tiny/vocab.txt");
+        let vocab_path =
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("../models/bert-tiny/vocab.txt");
         build_bert_tokenizer(&vocab_path).expect("failed to build tokenizer for test")
     }
 
@@ -68,7 +69,11 @@ mod tests {
             end: 24,
         }];
 
-        let tags = spans_to_bio_tags(encoding.get_offsets(), encoding.get_special_tokens_mask(), &slots);
+        let tags = spans_to_bio_tags(
+            encoding.get_offsets(),
+            encoding.get_special_tokens_mask(),
+            &slots,
+        );
 
         assert_eq!(tags.len(), encoding.get_tokens().len());
         println!("tokens: {:?}", encoding.get_tokens());
@@ -99,7 +104,11 @@ mod tests {
             end: 25,
         }];
 
-        let tags = spans_to_bio_tags(encoding.get_offsets(), encoding.get_special_tokens_mask(), &slots);
+        let tags = spans_to_bio_tags(
+            encoding.get_offsets(),
+            encoding.get_special_tokens_mask(),
+            &slots,
+        );
         println!("tokens: {:?}", encoding.get_tokens());
         println!("tags: {tags:?}");
 
@@ -109,14 +118,21 @@ mod tests {
         let i_count = tags.iter().filter(|t| *t == "I-LOCATION").count();
         assert_eq!(b_count, 1);
         assert!(i_count >= 1, "expected at least one I-LOCATION token");
-        assert_eq!(b_count + i_count + tags.iter().filter(|t| *t == "O").count(), tags.len());
+        assert_eq!(
+            b_count + i_count + tags.iter().filter(|t| *t == "O").count(),
+            tags.len()
+        );
     }
 
     #[test]
     fn tags_are_all_o_when_there_are_no_slots() {
         let tokenizer = test_tokenizer();
         let encoding = tokenizer.encode("calculate 5 + 3", true).unwrap();
-        let tags = spans_to_bio_tags(encoding.get_offsets(), encoding.get_special_tokens_mask(), &[]);
+        let tags = spans_to_bio_tags(
+            encoding.get_offsets(),
+            encoding.get_special_tokens_mask(),
+            &[],
+        );
         assert!(tags.iter().all(|t| t == "O"));
     }
 }

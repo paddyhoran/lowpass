@@ -44,10 +44,9 @@ fn download(url: &str, dest: &Path) -> Result<()> {
         .with_context(|| format!("requesting {url}"))?;
 
     let mut reader = response.into_body().into_reader();
-    let mut file =
-        File::create(dest).with_context(|| format!("creating {}", dest.display()))?;
-    let bytes = io::copy(&mut reader, &mut file)
-        .with_context(|| format!("writing {}", dest.display()))?;
+    let mut file = File::create(dest).with_context(|| format!("creating {}", dest.display()))?;
+    let bytes =
+        io::copy(&mut reader, &mut file).with_context(|| format!("writing {}", dest.display()))?;
 
     println!("  saved {} ({bytes} bytes)", dest.display());
     Ok(())

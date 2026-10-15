@@ -37,9 +37,12 @@ pub fn encode_example(
         &example.slots,
     );
 
-    let intent_id = intents
-        .id(&example.intent)
-        .with_context(|| format!("intent {:?} not present in intent vocabulary", example.intent))?;
+    let intent_id = intents.id(&example.intent).with_context(|| {
+        format!(
+            "intent {:?} not present in intent vocabulary",
+            example.intent
+        )
+    })?;
 
     let special_mask = encoding.get_special_tokens_mask();
     let mut slot_ids = Vec::with_capacity(tags.len());

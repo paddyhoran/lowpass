@@ -31,7 +31,10 @@ const VAL_FRACTION: f64 = 0.15;
 
 /// Pads a batch of encoded examples to the batch's longest sequence and
 /// stacks them into tensors: `(input_ids, token_type_ids, intent_ids, slot_ids, slot_mask)`.
-fn pad_batch(batch: &[&EncodedExample], device: &Device) -> Result<(Tensor, Tensor, Tensor, Tensor, Tensor)> {
+fn pad_batch(
+    batch: &[&EncodedExample],
+    device: &Device,
+) -> Result<(Tensor, Tensor, Tensor, Tensor, Tensor)> {
     let max_len = batch.iter().map(|e| e.input_ids.len()).max().unwrap_or(0);
 
     let mut input_ids = Vec::with_capacity(batch.len());
@@ -85,7 +88,9 @@ fn masked_slot_loss(slot_logits: &Tensor, slot_ids: &Tensor, slot_mask: &Tensor)
     let mask_flat = slot_mask.reshape((batch * seq_len,))?;
 
     let log_probs = candle_nn::ops::log_softmax(&logits_flat, 1)?;
-    let picked = log_probs.gather(&targets_flat.unsqueeze(1)?, 1)?.squeeze(1)?;
+    let picked = log_probs
+        .gather(&targets_flat.unsqueeze(1)?, 1)?
+        .squeeze(1)?;
     let masked = (picked * &mask_flat)?;
     let loss_sum = masked.sum_all()?.neg()?;
     let count = mask_flat.sum_all()?;
@@ -101,7 +106,8 @@ fn evaluate(model: &IntentSlotModel, val_set: &[EncodedExample], device: &Device
         let (input_ids, token_type_ids, intent_ids, slot_ids, slot_mask) =
             pad_batch(&[example], device)?;
         let attention_mask = input_ids.ne(0u32)?;
-        let (intent_logits, slot_logits) = model.forward(&input_ids, &token_type_ids, Some(&attention_mask))?;
+        let (intent_logits, slot_logits) =
+            model.forward(&input_ids, &token_type_ids, Some(&attention_mask))?;
 
         let predicted_intent = intent_logits.i(0)?.argmax(0)?.to_scalar::<u32>()?;
         let true_intent = intent_ids.i(0)?.to_scalar::<u32>()?;
@@ -113,7 +119,8 @@ fn evaluate(model: &IntentSlotModel, val_set: &[EncodedExample], device: &Device
         let true_tags = slot_ids.i(0)?.to_vec1::<u32>()?;
         let mask = slot_mask.i(0)?.to_vec1::<f32>()?;
 
-        for ((predicted, truth), m) in predicted_tags.iter().zip(true_tags.iter()).zip(mask.iter()) {
+        for ((predicted, truth), m) in predicted_tags.iter().zip(true_tags.iter()).zip(mask.iter())
+        {
             if *m > 0.0 {
                 total_slot_tokens += 1;
                 if predicted == truth {
@@ -124,11 +131,16 @@ fn evaluate(model: &IntentSlotModel, val_set: &[EncodedExample], device: &Device
     }
 
     let intent_accuracy = 100.0 * correct_intents as f64 / val_set.len() as f64;
-    println!("intent accuracy: {intent_accuracy:.1}% ({correct_intents}/{})", val_set.len());
+    println!(
+        "intent accuracy: {intent_accuracy:.1}% ({correct_intents}/{})",
+        val_set.len()
+    );
 
     if total_slot_tokens > 0 {
         let slot_accuracy = 100.0 * correct_slot_tokens as f64 / total_slot_tokens as f64;
-        println!("slot token accuracy: {slot_accuracy:.1}% ({correct_slot_tokens}/{total_slot_tokens})");
+        println!(
+            "slot token accuracy: {slot_accuracy:.1}% ({correct_slot_tokens}/{total_slot_tokens})"
+        );
     }
 
     Ok(())
@@ -139,7 +151,10 @@ fn main() -> Result<()> {
     let data_path = args
         .next()
         .unwrap_or_else(|| "data/training_data.jsonl".to_string());
-    let model_dir = PathBuf::from(args.next().unwrap_or_else(|| "models/bert-tiny".to_string()));
+    let model_dir = PathBuf::from(
+        args.next()
+            .unwrap_or_else(|| "models/bert-tiny".to_string()),
+    );
     let checkpoint_dir = PathBuf::from(args.next().unwrap_or_else(|| "models/trained".to_string()));
 
     let device = Device::Cpu;
@@ -150,14 +165,20 @@ fn main() -> Result<()> {
             "reading {data_path} -- did you run `cargo run --bin generator -- data/tools {data_path}` first?"
         )
     })?;
-    anyhow::ensure!(!examples.is_empty(), "no training examples found in {data_path}");
+    anyhow::ensure!(
+        !examples.is_empty(),
+        "no training examples found in {data_path}"
+    );
 
     let intents = intent_vocab(&examples);
     let slot_tags = slot_tag_vocab(&examples);
     println!("intents ({}): {:?}", intents.len(), intents.labels());
     println!("slot tags ({}): {:?}", slot_tags.len(), slot_tags.labels());
 
-    println!("Building tokenizer and encoding {} examples...", examples.len());
+    println!(
+        "Building tokenizer and encoding {} examples...",
+        examples.len()
+    );
     let tokenizer = build_bert_tokenizer(&model_dir.join("vocab.txt"))?;
     let mut encoded: Vec<EncodedExample> = examples
         .iter()
@@ -170,18 +191,32 @@ fn main() -> Result<()> {
     let val_size = ((encoded.len() as f64) * VAL_FRACTION).round() as usize;
     let val_size = val_size.clamp(1, encoded.len() - 1);
     let (val_set, train_set) = encoded.split_at(val_size);
-    println!("train: {} examples, validation: {} examples", train_set.len(), val_set.len());
+    println!(
+        "train: {} examples, validation: {} examples",
+        train_set.len(),
+        val_set.len()
+    );
 
     let config_json = std::fs::read_to_string(model_dir.join("config.json"))
         .with_context(|| format!("reading {}", model_dir.join("config.json").display()))?;
     let bert_config: BertConfig = serde_json::from_str(&config_json)?;
 
     let vb_encoder = unsafe {
-        VarBuilder::from_mmaped_safetensors(&[model_dir.join("model.safetensors")], DType::F32, &device)?
+        VarBuilder::from_mmaped_safetensors(
+            &[model_dir.join("model.safetensors")],
+            DType::F32,
+            &device,
+        )?
     };
     let varmap = VarMap::new();
     let vb_heads = VarBuilder::from_varmap(&varmap, DType::F32, &device);
-    let model = IntentSlotModel::load(vb_encoder, &bert_config, vb_heads, intents.len(), slot_tags.len())?;
+    let model = IntentSlotModel::load(
+        vb_encoder,
+        &bert_config,
+        vb_heads,
+        intents.len(),
+        slot_tags.len(),
+    )?;
 
     let mut optimizer = AdamW::new(
         varmap.all_vars(),
@@ -199,8 +234,10 @@ fn main() -> Result<()> {
         let mut num_batches = 0usize;
 
         for batch_indices in train_indices.chunks(BATCH_SIZE) {
-            let batch: Vec<&EncodedExample> = batch_indices.iter().map(|&i| &train_set[i]).collect();
-            let (input_ids, token_type_ids, intent_ids, slot_ids, slot_mask) = pad_batch(&batch, &device)?;
+            let batch: Vec<&EncodedExample> =
+                batch_indices.iter().map(|&i| &train_set[i]).collect();
+            let (input_ids, token_type_ids, intent_ids, slot_ids, slot_mask) =
+                pad_batch(&batch, &device)?;
             let attention_mask = input_ids.ne(0u32)?;
 
             let (intent_logits, slot_logits) =
@@ -237,6 +274,9 @@ fn main() -> Result<()> {
         serde_json::to_string_pretty(&vocab_json)?,
     )?;
 
-    println!("\nSaved trained heads + label vocab to {}", checkpoint_dir.display());
+    println!(
+        "\nSaved trained heads + label vocab to {}",
+        checkpoint_dir.display()
+    );
     Ok(())
 }

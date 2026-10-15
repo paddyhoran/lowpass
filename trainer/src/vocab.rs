@@ -60,12 +60,18 @@ mod tests {
             example("set_alarm", &[]),
         ];
         let vocab = intent_vocab(&examples);
-        assert_eq!(vocab.labels(), &["calculate".to_string(), "set_alarm".to_string()]);
+        assert_eq!(
+            vocab.labels(),
+            &["calculate".to_string(), "set_alarm".to_string()]
+        );
     }
 
     #[test]
     fn builds_bio_slot_tag_vocab_with_o_first() {
-        let examples = vec![example("set_alarm", &["TIME"]), example("check_weather", &["LOCATION"])];
+        let examples = vec![
+            example("set_alarm", &["TIME"]),
+            example("check_weather", &["LOCATION"]),
+        ];
         let vocab = slot_tag_vocab(&examples);
         assert_eq!(
             vocab.labels(),

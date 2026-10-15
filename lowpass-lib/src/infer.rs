@@ -68,8 +68,14 @@ impl LowPass {
         let vb_heads =
             VarBuilder::from_buffered_safetensors(heads_weights.to_vec(), DType::F32, &device)
                 .context("loading trained heads")?;
-        let model = IntentSlotModel::load(vb_encoder, &bert_config, vb_heads, intents.len(), slot_tags.len())
-            .context("wiring up encoder + heads")?;
+        let model = IntentSlotModel::load(
+            vb_encoder,
+            &bert_config,
+            vb_heads,
+            intents.len(),
+            slot_tags.len(),
+        )
+        .context("wiring up encoder + heads")?;
 
         Ok(Self {
             tokenizer,
@@ -125,7 +131,8 @@ fn decode_slots(
     let mut params = HashMap::new();
     let mut current: Option<(String, usize, usize)> = None;
 
-    let close = |current: &mut Option<(String, usize, usize)>, params: &mut HashMap<String, String>| {
+    let close = |current: &mut Option<(String, usize, usize)>,
+                 params: &mut HashMap<String, String>| {
         if let Some((label, start, end)) = current.take() {
             params.insert(label, text[start..end].to_string());
         }
