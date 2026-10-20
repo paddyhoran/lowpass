@@ -5,10 +5,12 @@
 //! `slot_head` are updated.
 //!
 //! Usage:
-//!   cargo run --bin generator -- data/tools data/training_data.jsonl
-//!   cargo run --bin train -- [data.jsonl] [model_dir] [checkpoint_dir]
+//!   cargo run --bin train -- [data.jsonl] [base_model_dir] [artifacts_dir]
 //!
-//! Defaults: data/training_data.jsonl, models/bert-tiny, models/trained
+//! Defaults: models/training_data.jsonl, models/bert-tiny, models/artifacts.
+//! In practice `just train <name>` passes all three explicitly, pointing at
+//! models/<name>/data/training_data.jsonl and models/<name>/artifacts.
+//! Generate the training data first with `just generate <name>`.
 
 use std::path::{Path, PathBuf};
 
@@ -150,20 +152,21 @@ fn main() -> Result<()> {
     let mut args = std::env::args().skip(1);
     let data_path = args
         .next()
-        .unwrap_or_else(|| "data/training_data.jsonl".to_string());
+        .unwrap_or_else(|| "models/training_data.jsonl".to_string());
     let model_dir = PathBuf::from(
         args.next()
             .unwrap_or_else(|| "models/bert-tiny".to_string()),
     );
-    let checkpoint_dir = PathBuf::from(args.next().unwrap_or_else(|| "models/trained".to_string()));
+    let checkpoint_dir = PathBuf::from(
+        args.next()
+            .unwrap_or_else(|| "models/artifacts".to_string()),
+    );
 
     let device = Device::Cpu;
 
     println!("Loading examples from {data_path}...");
     let examples = read_jsonl(Path::new(&data_path)).with_context(|| {
-        format!(
-            "reading {data_path} -- did you run `cargo run --bin generator -- data/tools {data_path}` first?"
-        )
+        format!("reading {data_path} -- did you run `just generate <name>` first?")
     })?;
     anyhow::ensure!(
         !examples.is_empty(),

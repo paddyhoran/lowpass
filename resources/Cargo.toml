@@ -1,8 +1,12 @@
 [package]
 name = "resources"
-version = "0.1.0"
-edition = "2021"
+description = "Setup and packaging tooling for lowpass models"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
 
 [dependencies]
 anyhow = "1.0.104"
 ureq = "3.4.2"
+sha2 = "0.10.9"

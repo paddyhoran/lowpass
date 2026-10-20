@@ -11,10 +11,10 @@
 //!
 //!   {"text": "set alarm for 7am", "intent": "set_alarm", "slots": [{"label": "TIME", "start": 14, "end": 17}]}
 //!
-//! Slot spans are character (byte) offsets into `text`. Deliberately not
-//! tokenizer-specific BIO tags — this output stays valid even if the base
-//! encoder is swapped later, since converting spans to token-level tags
-//! depends on whichever tokenizer used.
+//! Slot spans are byte offsets into `text`. Deliberately not tokenizer-specific
+//! BIO tags — this output stays valid even if the base encoder is swapped
+//! later, since converting spans to token-level tags depends on whichever
+//! tokenizer is used.
 
 use std::collections::HashMap;
 use std::fs::File;

@@ -47,11 +47,26 @@ pub fn spans_to_bio_tags(
 mod tests {
     use super::*;
     use lowpass_lib::tokenizer::build_bert_tokenizer;
-    use std::path::Path;
+    use std::path::{Path, PathBuf};
+    use std::sync::OnceLock;
+
+    /// The shared base checkpoint, which is gitignored — these tests tag
+    /// against the real BERT WordPiece vocabulary, so a fresh clone has to
+    /// fetch it before they can run. `ensure_base_model` is the same
+    /// (checksum-verified, skip-if-present) fetch `just start` performs, so
+    /// this costs one download the first time and nothing after that.
+    fn base_model_dir() -> &'static Path {
+        static DIR: OnceLock<PathBuf> = OnceLock::new();
+        DIR.get_or_init(|| {
+            let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../models/bert-tiny");
+            resources::download::ensure_base_model(&dir)
+                .expect("failed to fetch the base checkpoint for tests");
+            dir
+        })
+    }
 
     fn test_tokenizer() -> tokenizers::Tokenizer {
-        let vocab_path =
-            Path::new(env!("CARGO_MANIFEST_DIR")).join("../models/bert-tiny/vocab.txt");
+        let vocab_path = base_model_dir().join("vocab.txt");
         build_bert_tokenizer(&vocab_path).expect("failed to build tokenizer for test")
     }
 

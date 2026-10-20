@@ -10,6 +10,8 @@ use std::path::PathBuf;
 
 use anyhow::{Context, Result};
 
+use resources::name::normalize_model_name;
+
 const EXAMPLE_TOOL: &str = "set_alarm";
 
 const EXAMPLE_TEMPLATES: &str = r#"[
@@ -27,9 +29,16 @@ const EXAMPLE_PARAMS: &str = r#"{
 "#;
 
 fn main() -> Result<()> {
-    let name = std::env::args()
+    let raw_name = std::env::args()
         .nth(1)
         .context("usage: init_model <name>")?;
+    let name = normalize_model_name(&raw_name)?;
+    if name != raw_name {
+        println!(
+            "note: using '{name}' instead of '{raw_name}' -- a model name becomes a Rust \
+             crate and library name, which cannot contain hyphens"
+        );
+    }
 
     let tools_dir = PathBuf::from("models")
         .join(&name)

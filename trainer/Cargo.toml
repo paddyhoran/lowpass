@@ -1,7 +1,10 @@
 [package]
 name = "trainer"
-version = "0.1.0"
-edition = "2021"
+description = "Training pipeline for lowpass intent + slot models"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
 
 [dependencies]
 lowpass-lib = { path = "../lowpass-lib" }
@@ -13,3 +16,6 @@ candle-transformers = "0.11.0"
 tokenizers = "0.23.2"
 anyhow = "1.0.104"
 rand = "0.10.2"
+
+[dev-dependencies]
+resources = { path = "../resources" }
