@@ -1,7 +1,16 @@
-# Low Pass
+<div align="center">
 
-A local tool calling framework built in Rust, designed to parse natural language commands and convert 
-them into structured tool calls.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg">
+  <img src="assets/logo-light.svg" alt="lowpass" width="360">
+</picture>
+
+**One sentence in, one structured tool call out — locally, with no API and no tokens.**
+
+<img src="assets/example.svg" width="680"
+     alt="Terminal: running example_lowpass with the input &quot;set my alarm for 8pm&quot; prints the tool call set_alarm with the parameter TIME set to 8pm.">
+
+</div>
 
 It feels wrong to be calling an API for a large vendor model for everything.  Increasingly, I want small 
 focused units of "intelligence" to use as building blocks for other applications.  `lowpass` takes a single
@@ -10,7 +19,49 @@ text statement and converts it to a tool call.
 > A [lowpass filter](https://en.wikipedia.org/wiki/Low-pass_filter) is a very simple filter in signal 
 processing that cuts off high frequency.
 
-## High Level Design
+`lowpass` is designed to run locally, both training and inference, so it can be embedded in
+applications with no network access and results in no token use.
+
+## At a glance
+
+|                     |                                                                      |
+|:--------------------|:---------------------------------------------------------------------|
+| **Inference**       | ~0.9 ms per call, warm and in-process                                 |
+| **Cold start**      | ~9.5 ms to load the embedded model and answer the first call          |
+| **Model**           | 16.9 MB base encoder + 2.3 KB of trained heads                        |
+| **Packaged binary** | 22.7 MB with the weights baked in — no runtime assets to ship         |
+| **Training**        | ~1.8 s on CPU for the three-tool example. No GPU                      |
+| **Network**         | None. Training and inference are both entirely local                  |
+
+<sub>Measured on an Apple M2 Max using the <code>test_model</code> example — three tools, 75 generated
+examples, 40 epochs, which scored 100% held-out intent accuracy and 90.9% per-token slot accuracy.
+Your numbers will differ; <code>just train</code> prints accuracy at the end of every run.</sub>
+
+## Why not just call an LLM?
+
+Often you should. But a hosted model is a strange thing to reach for when the question is only *which of
+my six tools is this, and what are its arguments* — something small enough to answer on the machine
+that asked, in about a millisecond, for nothing.
+
+|                           | `lowpass`                            | Hosted LLM tool call                 |
+|:--------------------------|:-------------------------------------|:-------------------------------------|
+| Latency                   | ~1 ms, no network                    | Hundreds of ms to seconds            |
+| Cost per call             | Zero                                 | Per token                            |
+| Works offline             | Yes                                  | No                                   |
+| Determinism               | Same input, same output, forever     | Sampling; the model can change under you |
+| Data leaves the machine   | Never                                | Every call                           |
+| Open-ended language       | Only what you trained it on          | Broad                                |
+| Adding a tool             | Add templates, retrain               | Edit a prompt                        |
+
+`lowpass` is narrow on purpose — it is a classifier, not a reasoner.
+
+### When not to use it
+
+- You need multi-turn conversation, or context carried between utterances.
+- Your tool set changes at runtime, or your users define their own tools.
+- You can't produce training examples — the model only ever knows what it was shown.
+
+## How it works
 
 The system operates via a single forward pass through a lightweight Transformer encoder, topped with
 two independent, parallel classification heads. 
@@ -23,11 +74,6 @@ two independent, parallel classification heads.
 
 The results of these two predictions are then used to craft a tool call.
 
-## Local First
-
-`lowpass` is designed to run locally, both training and inference, so it can be embedded in 
-applications with no network access and results in no token use.
-
 See [`FRAMEWORK.md`](FRAMEWORK.md) for the full architecture and training-strategy writeup.
 
 ## Repository Layout
@@ -37,6 +83,7 @@ Cargo.toml                       # workspace: lowpass-lib + generator + resource
 FRAMEWORK.md                     # architecture design doc (dual-head encoder, training strategy)
 Plan.md                          # planned work: schema filtering + tool gating, and loose ends
 LICENSE-MIT, LICENSE-APACHE      # dual-licensed, see below
+assets/                          # logo (light/dark) + the example graphic used above
 justfile                         # `just start` / `just generate` / `just train` / `just create` recipes
 
 resources/                       # crate: setup + packaging

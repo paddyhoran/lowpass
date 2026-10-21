@@ -12,3 +12,5 @@
 !/models/*/data
 /models/*/data/*
 !/models/*/data/tools
+
+.DS_Store

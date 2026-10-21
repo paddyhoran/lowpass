@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 272" width="760" height="272" role="img" aria-label="Terminal: running example_lowpass with the input &quot;set my alarm for 8pm&quot; prints the tool call set_alarm with the parameter TIME set to 8pm.">
+  <title>lowpass turning a sentence into a tool call</title>
+  <rect x="0.5" y="0.5" width="759" height="271" rx="8" fill="#1A2029" stroke="#2A3643"/>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="19">
+    <text xml:space="preserve" x="30" y="52" fill="#AEBCC7"><tspan fill="#6D7D8B">demo %</tspan> <tspan fill="#E8EEF3">./example_lowpass</tspan> "set my alarm for <tspan fill="#E59A4A">8pm</tspan>"</text>
+    <text xml:space="preserve" x="30" y="82"  fill="#6D7D8B">{</text>
+    <text xml:space="preserve" x="30" y="112" fill="#6D7D8B">  <tspan fill="#7FB5DC">"tool"</tspan>: <tspan fill="#E59A4A">"set_alarm"</tspan>,</text>
+    <text xml:space="preserve" x="30" y="142" fill="#6D7D8B">  <tspan fill="#7FB5DC">"params"</tspan>: {</text>
+    <text xml:space="preserve" x="30" y="172" fill="#6D7D8B">    <tspan fill="#7FB5DC">"TIME"</tspan>: <tspan fill="#E59A4A">"8pm"</tspan></text>
+    <text xml:space="preserve" x="30" y="202" fill="#6D7D8B">  }</text>
+    <text xml:space="preserve" x="30" y="232" fill="#6D7D8B">}</text>
+  </g>
+</svg>
