@@ -13,18 +13,18 @@
 </div>
 
 It feels wrong to be calling an API for a large vendor model for everything.  Increasingly, I want small 
-focused units of "intelligence" to use as building blocks for other applications.  `lowpass` takes a single
-text statement and converts it to a tool call.
+focused units of "intelligence" (it's not intelligence) to use as building blocks for other applications.  
+`lowpass` takes a single text statement and converts it to a tool call.
 
-> A [lowpass filter](https://en.wikipedia.org/wiki/Low-pass_filter) is a very simple filter in signal 
-processing that cuts off high frequency.
+> A [lowpass filter](https://en.wikipedia.org/wiki/Low-pass_filter) is one of the simplest ideas in
+signal processing: it lets low frequencies pass through and rolls off everything above a cutoff.
 
 `lowpass` is designed to run locally, both training and inference, so it can be embedded in
 applications with no network access and results in no token use.
 
 ## At a glance
 
-|                     |                                                                      |
+|                     |                                                                       |
 |:--------------------|:---------------------------------------------------------------------|
 | **Inference**       | ~0.9 ms per call, warm and in-process                                 |
 | **Cold start**      | ~9.5 ms to load the embedded model and answer the first call          |
@@ -53,13 +53,42 @@ that asked, in about a millisecond, for nothing.
 | Open-ended language       | Only what you trained it on          | Broad                                |
 | Adding a tool             | Add templates, retrain               | Edit a prompt                        |
 
-`lowpass` is narrow on purpose — it is a classifier, not a reasoner.
+`lowpass` has a narrow purpose — it is a classifier, not a reasoner.
 
 ### When not to use it
 
 - You need multi-turn conversation, or context carried between utterances.
 - Your tool set changes at runtime, or your users define their own tools.
 - You can't produce training examples — the model only ever knows what it was shown.
+- You need real "intelligence" (still not sure it's intelligence :thinking:)
+
+## Prior art
+
+Joint intent classification and slot filling is a long-standing NLU task, and `lowpass` implements
+the standard dual-head encoder approach to it
+([Chen, Zhuo & Wang, 2019](https://arxiv.org/abs/1902.10909)). I looked at other projects but found
+that they did not fit my needs in one way or another.
+
+| Project | Overlap | Status |
+|:--|:--|:--|
+| [Snips NLU](https://github.com/snipsco/snips-nlu-rs) | On-device intent + slot parsing; Rust inference, Python training | Unmaintained since the team joined Sonos in 2019 |
+| [Rasa](https://github.com/RasaHQ/rasa) ([DIET](https://rasa.com/blog/introducing-dual-intent-and-entity-transformer-diet-state-of-the-art-performance-on-a-lightweight-architecture)) | One transformer shared between intent classification and entity extraction | Apache 2.0, maintenance mode; development moved to Rasa Pro |
+| [OVOS Padatious](https://github.com/OpenVoiceOS/ovos-padatious-pipeline-plugin) / [Adapt](https://github.com/OpenVoiceOS/ovos-adapt-pipeline-plugin) | Offline intent parsing for voice assistants; Mycroft's successors | Maintained; Padatious documented as legacy and not recommended for new deployments |
+| [Picovoice Rhino](https://github.com/Picovoice/rhino) | On-device speech-to-intent | Apache 2.0, but custom models are trained through Picovoice's cloud console and need an account |
+
+How `lowpass` differs:
+
+- Training and inference are both Rust. Snips trained in Python and shipped Rust for inference only;
+  Rasa and the reference JointBERT implementations are Python throughout.
+- No account, hosted console, or network access at any stage.
+- A trained model packages into a single binary with the weights embedded.
+- Slot values come back as text spans and nothing more. Snips shipped
+  [`snips-nlu-parsers`](https://github.com/snipsco/snips-nlu-parsers) to resolve dates, durations and
+  numbers into typed values; `lowpass` has no equivalent, the caller is responsible for types, etc.
+
+The generative alternative — constrained decoding against a local LLM, or a small function-calling
+model such as [TinyAgent](https://arxiv.org/abs/2409.00608) — is covered in
+[Why not just call an LLM?](#why-not-just-call-an-llm) above.
 
 ## How it works
 
@@ -110,7 +139,7 @@ models/
     <name>/                      # packaged crate produced by `just create <name>` (gitignored)
 ```
 
-Everything under `models/<name>/` besides `data/tools/**` is regenerable build output — see
+Everything under `models/<name>/` besides `data/tools/**` is build output — see
 `.gitignore`. Adding a new tool-calling model means creating a new `models/<other_name>/data/tools/`
 directory; `models/bert-tiny` (the base encoder) is shared across all of them.
 
@@ -152,7 +181,8 @@ and safe to re-run.
 ### Generating training data
 
 This repository contains a simple program for generating data but, of course, you can add your own custom
-training examples.
+training examples. In my applications where I use this I continually update the training data and re-train
+so it "learns" my speech patterns.  I don't use the generator but it can get you started.
 
 To use the generator edit the scaffolded tool, and/or add more under `models/<name>/data/tools/<tool>/`
 (`templates.json` is a list of sentence templates like `"set alarm for {TIME}"`; `params.json` maps
@@ -165,8 +195,7 @@ The number of folders in `models/<name>/data/tools/` is the number of tools avai
 just generate <name>   # expand templates into BIO-tagged training_data.jsonl
 ```
 
-This creates a `training_data.jsonl` file.  Of course, you don't need to use the generator you can craft
-your own `training_data.jsonl` file if you like (this is expected for any real application).
+This creates a `training_data.jsonl` file that is the input to training.
 
 ### Train your model
 
@@ -227,10 +256,10 @@ $ cargo run -- "set alarm for 7am"
 }
 ```
 
-## Status
+## Status :warning:
 
-`lowpass` is early and the API is not yet stable. I'm using it as a dependency in several 
-experimental applications so there are no guarantees of stability for now.
+`lowpass` is under development and the API is not yet stable. I'm using it as a dependency in 
+several experimental personal applications so there are no guarantees of stability for now.
 
 Two pieces of the design in [`FRAMEWORK.md`](FRAMEWORK.md), schema filtering and tool gating, 
 are documented but not yet built.
